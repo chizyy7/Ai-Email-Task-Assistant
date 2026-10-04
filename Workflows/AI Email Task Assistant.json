@@ -1,0 +1,272 @@
+{
+  "name": "AI Email Task Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "q": "-from:me"
+        }
+      },
+      "id": "b51e8d58-6cd3-405d-8126-4fe960622405",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CAN5gbbFrmTmhAvj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "emailSubject",
+              "value": "={{ $json.Subject || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "emailSender",
+              "value": "={{ $json.From || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "emailBody",
+              "value": "={{ (() => {\n  const part = ($json.payload.parts || []).filter(p => p.mimeType === \"text/plain\")[0];\n  return part ? $base64ToString(part.body.data) : ($json.snippet || \"\");\n})() }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "emailReceivedTime",
+              "value": "={{ $json.internalDate }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "dd54b7d4-dbe1-4145-8b22-b6f1305bb4ca",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an AI assistant that analyzes emails to determine if they contain actionable tasks.\n\nGiven the email details below, output a JSON object with the following structure:\n\n{\n  \"is_actionable\": boolean,\n  \"task\": string,\n  \"deadline\": string | null,\n  \"priority\": \"High\" | \"Medium\" | \"Low\",\n  \"sender\": string,\n  \"subject\": string,\n  \"summary\": string\n}\n\nRules:\n- If the email is informational and does not require an action, set \"is_actionable\": false.\n- If \"is_actionable\": false, you can leave other fields empty or use default values.\n- If \"is_actionable\": true, extract:\n  - task: the actionable task description\n  - deadline: if a clear deadline is mentioned, use it; otherwise null\n  - priority: classify as High, Medium, or Low based on urgency and importance\n  - sender: the email sender\n  - subject: the email subject\n  - summary: a short summary of the email (maximum 2 sentences)\n- Do not invent deadlines or tasks.\n- Return valid JSON only.\n\nEmail Details:\n\nSubject: {{$json.emailSubject}}\nSender: {{$json.emailSender}}\nBody: {{$json.emailBody}}\nReceived: {{$json.emailReceivedTime}}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "2a3df699-a75f-4401-ad0e-107036d7f4c8",
+      "name": "AI Task Classifier",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kz4ro90tLvVLpdu8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "2675206b-3e37-4604-ab41-939a5fbf0d55",
+      "name": "Is Actionable?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "notificationTask",
+              "value": "={{ JSON.parse($json.content.parts[0].text)[\"task\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "notificationDeadline",
+              "value": "={{ JSON.parse($json.content.parts[0].text).deadline }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "notificationPriority",
+              "value": "={{ JSON.parse($json.content.parts[0].text).priority }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "notificationSender",
+              "value": "={{ JSON.parse($json.content.parts[0].text).sender }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "notificationSubject",
+              "value": "={{ JSON.parse($json.content.parts[0].text).subject }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "notificationSummary",
+              "value": "={{ JSON.parse($json.content.parts[0].text).summary }}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "notificationMessage",
+              "value": "={{ \n`<ol>\n<li><strong>Task:</strong> ${$json.notificationTask}</li>\n<li><strong>Deadline:</strong> ${$json.notificationDeadline || \"No deadline specified\"}</li>\n<li><strong>Priority:</strong> ${$json.notificationPriority}</li>\n<li><strong>Sender:</strong> ${$json.notificationSender}</li>\n<li><strong>Summary:</strong> ${$json.notificationSummary}</li>\n</ol>`\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "10b8dd1b-e177-4833-aacc-14f74a29f6a4",
+      "name": "Prepare Notification",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "nnadichizy7@gmail.com",
+        "subject": "={{ $node[\"Prepare Notification\"].json[\"notificationSubject\"] }}",
+        "message": "={{ $node[\"Prepare Notification\"].json[\"notificationMessage\"] }}",
+        "options": {}
+      },
+      "id": "789888e4-b832-4d7c-9bd0-337f820093df",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        192
+      ],
+      "webhookId": "9ed01341-a875-475e-ac76-8dd054165763",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CAN5gbbFrmTmhAvj",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "AI Task Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Task Classifier": {
+      "main": [
+        [
+          {
+            "node": "Is Actionable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Actionable?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notification": {
+      "main": [
+        [
+          {
+            "node": "Send Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6ba07767-a306-4a2e-9379-ecf621b5b428",
+  "meta": {
+    "instanceId": "0a617192cbaab87a23f9f555b8a64c66a0c5a8bce00cd14311072f062a5518ab"
+  },
+  "nodeGroups": [],
+  "id": "uf1Tjw6LiHw9R8Uc",
+  "tags": []
+}

@@ -1,0 +1,45 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+bower_components/
+vendor/
+packages/
+
+# Build outputs
+/dist
+/build
+/lib
+/bin
+out/
+
+# Test coverage
+coverage/
+.lcov*
+*.lcov
+
+# Misc
+.env
+*.env
+*.env.*
+! .env.example
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# n8n specific
+# Ignore n8n credential files if they exist (though we don't have any)
+.n8n/

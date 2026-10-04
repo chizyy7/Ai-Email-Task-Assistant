@@ -44,7 +44,7 @@ The workflow automates the process of scanning incoming emails, using AI to dete
 ### 6. Send Notification (`789888e4-b832-4d7c-9bd0-337f820093df`)
 - **Purpose**: Sends the formatted notification via email
 - **Configuration**:
-  - Recipient: `nnadichizy7@gmail.com` (update as needed)
+  - Recipient: Configure your email address in the Send Notification node
   - Subject: Uses the extracted subject from email
   - Message: Uses the formatted HTML notification
   - Credentials: Gmail account (OAuth2)

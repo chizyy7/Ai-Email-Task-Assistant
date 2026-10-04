@@ -38,7 +38,7 @@ An intelligent email automation system that uses AI to classify incoming emails 
    - Copy the JSON from `Workflows/AI Email Task Assistant.json`
    - In n8n workflow editor, click the import button (top-right)
    - Paste the JSON and click import
-   - Verify credential references match your created credentials
+   - After importing the workflow, configure your own Gmail and Google Gemini credentials in n8n
 
 4. **Activate Workflow**:
    - Toggle the workflow to active status
@@ -84,7 +84,7 @@ Given the email details below, output a JSON object with the following structure
 - **Regular credential rotation**: Rotate OAuth tokens and API keys periodically
 - **Audit logs**: Monitor n8n execution logs for unusual activity
 
-The workflow JSON in this repository contains only credential ID references (like `CAN5gbbFrmTmhAvj` and `kz4ro90tLvVLpdu8`), which are safe to share as they reference credentials stored securely in your n8n instance.
+The workflow JSON in this repository contains only credential ID references, which are safe to share as they reference credentials stored securely in your n8n instance.
 
 ## Usage
 
@@ -95,7 +95,7 @@ Once activated, the workflow will:
 4. If an actionable task is detected, send a formatted notification email
 5. Non-actionable emails are ignored
 
-Notification emails are sent to: `nnadichizy7@gmail.com` (update this address in the "Send Notification" node)
+Notification emails are sent to the configured recipient (update this address in the "Send Notification" node)
 
 ## Contributing
 
@@ -108,9 +108,5 @@ Notification emails are sent to: `nnadichizy7@gmail.com` (update this address in
 ## License
 
 Distributed under the MIT License. See `LICENSE` file for details.
-
-## Contact
-
-Your Name - [your-email@example.com]
 
 Project Link: https://github.com/chizyy7/Ai-Email-Task-Assistant

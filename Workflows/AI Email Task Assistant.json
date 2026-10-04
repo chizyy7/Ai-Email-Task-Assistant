@@ -177,7 +177,7 @@
     },
     {
       "parameters": {
-        "sendTo": "nnadichizy7@gmail.com",
+        "sendTo": "your-email@example.com",
         "subject": "={{ $node[\"Prepare Notification\"].json[\"notificationSubject\"] }}",
         "message": "={{ $node[\"Prepare Notification\"].json[\"notificationMessage\"] }}",
         "options": {}
